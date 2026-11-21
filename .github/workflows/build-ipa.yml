@@ -50,6 +50,10 @@ jobs:
       PUBLISH: ${{ inputs.publish == true || inputs.publish == 'true' }}
       # gh and git use this to create the release and push the source update.
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      # act runs steps with a terminal attached, so gh would open a pager or prompt and hang.
+      GH_PAGER: cat
+      GH_PROMPT_DISABLED: "1"
+      PAGER: cat
     steps:
       - name: Check out
         uses: actions/checkout@v4

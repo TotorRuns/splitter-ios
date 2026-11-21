@@ -39,7 +39,7 @@ act workflow_dispatch \
   -P ubuntu-latest=-self-hosted \
   --artifact-server-path "$ARTIFACTS" \
   "${secret_args[@]}" \
-  "$@"
+  "$@" </dev/null  # no input: anything that prompts fails fast instead of hanging
 
 if $publishing; then
   # The workflow committed the updated source in act's copy and pushed it; bring it here too.
