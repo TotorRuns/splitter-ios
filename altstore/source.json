@@ -1,0 +1,39 @@
+{
+  "name": "Splitter for iOS",
+  "subtitle": "A native speedrun timer for iPhone and iPad.",
+  "description": "Builds of Splitter for iOS, a SwiftUI speedrun timer built on livesplit-core.",
+  "iconURL": "https://raw.githubusercontent.com/TotorRuns/splitter-ios/main/Resources/AppIcon.png",
+  "website": "https://github.com/TotorRuns/splitter-ios",
+  "tintColor": "#3373F5",
+  "apps": [
+    {
+      "bundleIdentifier": "com.totorruns.splitter",
+      "versions": [
+        {
+          "version": "1.0",
+          "buildVersion": "202611210738",
+          "date": "2026-11-21T07:39:12+00:00",
+          "localizedDescription": "First release of Splitter for iOS.",
+          "downloadURL": "https://github.com/TotorRuns/splitter-ios/releases/download/v1.0-202611210738/Splitter-1.0-202611210738.ipa",
+          "size": 6651580,
+          "minOSVersion": "17.0"
+        }
+      ],
+      "name": "Splitter",
+      "developerName": "TotorRuns",
+      "subtitle": "Speedrun timer powered by livesplit-core",
+      "localizedDescription": "A native speedrun timer for iPhone and iPad, built on livesplit-core.\n\n• Imports Splitter .split files, LiveSplit .lss and Splits.io .json\n• Big Start/Split button with haptics, plus Undo, Skip, Pause and Reset\n• Ahead/behind and gold-segment colours, comparisons, Real/Game time\n• Edit splits on the device; runs autosave as .lss in the Files app",
+      "iconURL": "https://raw.githubusercontent.com/TotorRuns/splitter-ios/main/Resources/AppIcon.png",
+      "tintColor": "#3373F5",
+      "category": "utilities",
+      "appPermissions": {
+        "entitlements": [],
+        "privacy": {}
+      }
+    }
+  ],
+  "news": [],
+  "featuredApps": [
+    "com.totorruns.splitter"
+  ]
+}
