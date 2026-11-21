@@ -179,3 +179,18 @@ final class SplitterCoreTests: XCTestCase {
         XCTAssertEqual(RunLibrary.sanitize("   "), "Splits")
     }
 }
+
+@MainActor
+final class RunLibraryRestoreTests: XCTestCase {
+    func testURLForFileNamed() throws {
+        let dir = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString)
+        defer { try? FileManager.default.removeItem(at: dir) }
+        let library = RunLibrary(directory: dir)
+        let src = Bundle.module.url(forResource: "Fixtures", withExtension: nil)!.appendingPathComponent("sample.lss")
+        let saved = try library.importFile(at: src)
+        XCTAssertEqual(library.url(forFileNamed: saved.lastPathComponent)?.lastPathComponent, saved.lastPathComponent)
+        XCTAssertNil(library.url(forFileNamed: ""))
+        XCTAssertNil(library.url(forFileNamed: "missing.lss"))
+        XCTAssertNil(library.url(forFileNamed: "../escape.lss"), "only names inside the library")
+    }
+}

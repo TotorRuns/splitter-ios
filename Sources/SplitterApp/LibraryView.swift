@@ -19,8 +19,19 @@ struct LibraryView: View {
     @State private var path: [TimerRoute] = []
     @State private var importing = false
     @State private var newRunEditor: RunEditorSession?
-    @State private var errorMessage: String?
+    @State private var problem: Problem?
     @State private var pendingDelete: RunEntry?
+    /// File name of the splits open in the timer, so the app can reopen them on launch
+    /// (HIG: Launching, "restore the previous state"). Cleared when going back to the list.
+    @AppStorage("lastOpenRun") private var lastOpenRun = ""
+    @State private var didRestore = false
+
+    /// An error with a specific title (HIG: Alerts).
+    struct Problem: Identifiable {
+        var title: String
+        var message: String
+        var id: String { title + message }
+    }
 
     var body: some View {
         NavigationStack(path: $path) {
@@ -70,7 +81,7 @@ struct LibraryView: View {
                       allowsMultipleSelection: true) { result in
             switch result {
             case .success(let urls): importFiles(urls)
-            case .failure(let error): errorMessage = error.localizedDescription
+            case .failure(let error): problem = Problem(title: "Couldn't Import Splits", message: error.localizedDescription)
             }
         }
         .onOpenURL { url in
@@ -86,7 +97,7 @@ struct LibraryView: View {
                         newRunEditor = nil
                         open(url)
                     } catch {
-                        errorMessage = error.localizedDescription
+                        problem = Problem(title: "Couldn't Create Splits", message: error.localizedDescription)
                     }
                 } onCancel: {
                     newRunEditor = nil
@@ -103,10 +114,27 @@ struct LibraryView: View {
         } message: {
             Text("The splits file and its attempt history will be removed from this device.")
         }
-        .alert("Couldn't open splits", isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+        .alert(problem?.title ?? "", isPresented: .init(get: { problem != nil }, set: { if !$0 { problem = nil } }),
+               presenting: problem) { _ in
             Button("OK", role: .cancel) {}
-        } message: {
-            Text(errorMessage ?? "")
+        } message: { problem in
+            Text(problem.message)
+        }
+        .task { restoreLastOpenRun() }
+        .onChange(of: path) { _, newPath in
+            if newPath.isEmpty { lastOpenRun = "" }
+        }
+    }
+
+    private func restoreLastOpenRun() {
+        guard !didRestore else { return }
+        didRestore = true
+        // Don't stack on top of a file the app was just opened with.
+        guard path.isEmpty, let url = library.url(forFileNamed: lastOpenRun) else { return }
+        if let session = try? TimerSession(contentsOf: url) {
+            path.append(TimerRoute(session: session))
+        } else {
+            lastOpenRun = ""  // unreadable now; just show the list
         }
     }
 
@@ -125,8 +153,9 @@ struct LibraryView: View {
     private func open(_ url: URL) {
         do {
             path.append(TimerRoute(session: try TimerSession(contentsOf: url)))
+            lastOpenRun = url.lastPathComponent
         } catch {
-            errorMessage = error.localizedDescription
+            problem = Problem(title: "Couldn't Open Splits", message: error.localizedDescription)
         }
     }
 
@@ -143,7 +172,10 @@ struct LibraryView: View {
                 failures.append("\(name): \(error.localizedDescription)")
             }
         }
-        if !failures.isEmpty { errorMessage = failures.joined(separator: "\n") }
+        if !failures.isEmpty {
+            problem = Problem(title: failures.count == 1 ? "Couldn't Import Splits" : "Couldn't Import \(failures.count) Files",
+                              message: failures.joined(separator: "\n"))
+        }
         if (openFirst || urls.count == 1), let first = imported.first { open(first) }
     }
 }

@@ -92,6 +92,7 @@ struct SplitsComponent: View {
     var state: SplitsState
     var layout: LayoutState
     var session: TimerSession
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private var rows: [SplitRow] { state.splits.filter { !$0.isPlaceholder } }
     private var currentID: UInt64? { rows.first(where: \.isCurrentSplit)?.id }
@@ -125,7 +126,12 @@ struct SplitsComponent: View {
             .scrollIndicators(.hidden)
             .onChange(of: currentID) { _, id in
                 guard let id else { return }
-                withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
+                // HIG (Accessibility): honour Reduce Motion by not animating automatic scrolling.
+                if reduceMotion {
+                    proxy.scrollTo(id, anchor: .center)
+                } else {
+                    withAnimation(.easeOut(duration: 0.2)) { proxy.scrollTo(id, anchor: .center) }
+                }
             }
         }
         .frame(maxHeight: .infinity)
@@ -149,77 +155,152 @@ struct SplitRowView: View {
     var row: SplitRow
     var hasIcons: Bool
     var session: TimerSession
+    @Environment(\.splitPalette) private var palette
+    @Environment(\.dynamicTypeSize) private var typeSize
+    @ScaledMetric(relativeTo: .body) private var columnWidth: CGFloat = 64
+    @ScaledMetric(relativeTo: .body) private var iconSize: CGFloat = 24
+
+    // livesplit-core lists columns right-to-left.
+    private var columns: [SplitColumn] { row.columns.reversed() }
 
     var body: some View {
-        HStack(spacing: 10) {
-            if hasIcons {
-                RunIcon(id: row.icon, session: session, size: 24)
-                    .frame(width: 24, height: 24)
-            }
-            Text(row.name)
-                .fontWeight(row.isGroupHeader ? .semibold : nil)
-                .lineLimit(1)
-                .padding(.leading, row.isIndented ? 16 : 0)
-                .frame(maxWidth: .infinity, alignment: .leading)
-            // livesplit-core lists columns right-to-left.
-            ForEach(Array(row.columns.reversed().enumerated()), id: \.offset) { _, column in
-                Text(column.value)
-                    .monospacedDigit()
-                    .foregroundStyle(Color(column.visualColor))
-                    .lineLimit(1)
-                    .frame(minWidth: 64, alignment: .trailing)
+        Group {
+            if typeSize.isAccessibilitySize {
+                // At the largest text sizes, put the times under the name so neither gets cut off.
+                VStack(alignment: .leading, spacing: 4) {
+                    nameLine
+                    HStack(spacing: 16) {
+                        Spacer(minLength: 0)
+                        columnValues
+                    }
+                }
+                .padding(.vertical, 6)
+            } else {
+                HStack(spacing: 10) {
+                    nameLine
+                    columnValues
+                }
             }
         }
         .font(.body)
         .padding(.horizontal, 14)
-        .frame(minHeight: 36)
-        .accessibilityElement(children: .combine)
+        .frame(minHeight: 44)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(accessibilityText)
+        .accessibilityAddTraits(row.isCurrentSplit ? .isSelected : [])
+        .accessibilityAddTraits(row.isGroupHeader ? .isHeader : [])
+    }
+
+    private var nameLine: some View {
+        HStack(spacing: 10) {
+            if hasIcons {
+                RunIcon(id: row.icon, session: session, size: iconSize)
+                    .frame(width: iconSize, height: iconSize)
+            }
+            Text(row.name)
+                .fontWeight(row.isGroupHeader ? .semibold : nil)
+                .lineLimit(typeSize.isAccessibilitySize ? 2 : 1)
+                .padding(.leading, row.isIndented ? 16 : 0)
+                .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    private var columnValues: some View {
+        ForEach(Array(columns.enumerated()), id: \.offset) { _, column in
+            HStack(spacing: 3) {
+                // A shape as well as a colour marks gold segments (HIG: don't rely on colour alone).
+                if column.semanticColor.isBestSegment && !column.value.isEmpty {
+                    Image(systemName: "star.fill")
+                        .font(.caption2)
+                        .imageScale(.small)
+                }
+                Text(column.value)
+                    .monospacedDigit()
+                    .lineLimit(1)
+            }
+            .foregroundStyle(palette.swiftUIColor(column.semanticColor, fallback: column.visualColor) ?? .primary)
+            .frame(minWidth: typeSize.isAccessibilitySize ? nil : columnWidth, alignment: .trailing)
+        }
+    }
+
+    /// e.g. "Disc Dog, current split, 7:52, −1:05, ahead, gaining time".
+    private var accessibilityText: String {
+        var parts = [row.name.isEmpty ? "Split" : row.name]
+        if row.isGroupHeader { parts.append("group") }
+        if row.isCurrentSplit { parts.append("current split") }
+        for column in columns where !column.value.isEmpty {
+            parts.append(column.value)
+            if let meaning = column.semanticColor.spokenDescription { parts.append(meaning) }
+        }
+        return parts.joined(separator: ", ")
     }
 }
 
 struct TimerComponent: View {
     var state: TimerState
+    @Environment(\.splitPalette) private var palette
+    // HIG (Typography/Accessibility): let the timer grow with the person's text size.
+    @ScaledMetric(relativeTo: .largeTitle) private var timeSize: CGFloat = 64
+    @ScaledMetric(relativeTo: .largeTitle) private var fractionSize: CGFloat = 38
+
+    private var fill: LinearGradient {
+        if let c = palette.color(for: state.semanticColor) {
+            // Keep LiveSplit's top-to-bottom shading, using the accessible colour.
+            let bottom = RGBA(c.r * 0.78, c.g * 0.78, c.b * 0.78, c.a)
+            return LinearGradient(colors: [Color(c), Color(bottom)], startPoint: .top, endPoint: .bottom)
+        }
+        return LinearGradient(colors: [Color(state.topColor), Color(state.bottomColor)],
+                              startPoint: .top, endPoint: .bottom)
+    }
 
     var body: some View {
-        let fill = LinearGradient(colors: [Color(state.topColor), Color(state.bottomColor)],
-                                  startPoint: .top, endPoint: .bottom)
         HStack(alignment: .lastTextBaseline, spacing: 0) {
             Spacer(minLength: 0)
             Text(state.time)
-                .font(.system(size: 64, weight: .semibold, design: .rounded))
+                .font(.system(size: timeSize, weight: .semibold, design: .rounded))
             Text(state.fraction)
-                .font(.system(size: 38, weight: .semibold, design: .rounded))
+                .font(.system(size: fractionSize, weight: .semibold, design: .rounded))
         }
         .monospacedDigit()
         .lineLimit(1)
-        .minimumScaleFactor(0.4)
+        .minimumScaleFactor(0.3)
         .foregroundStyle(fill)
         .padding(.horizontal, 14)
         .padding(.vertical, 4)
         .background(GradientFill(gradient: state.background))
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel("Timer \(state.time)\(state.fraction)")
+        .accessibilityLabel("Timer")
+        .accessibilityValue([state.time + state.fraction, state.semanticColor.spokenDescription]
+            .compactMap { $0 }.joined(separator: ", "))
+        .accessibilityAddTraits(.updatesFrequently)
     }
 }
 
 struct KeyValueComponent: View {
     var state: KeyValueState
+    @Environment(\.splitPalette) private var palette
 
     var body: some View {
         HStack {
             Text(state.key)
                 .foregroundStyle(state.keyColor.map(Color.init) ?? .primary)
             Spacer()
-            Text(state.value)
-                .monospacedDigit()
-                .foregroundStyle(state.valueColor.map(Color.init) ?? .primary)
+            HStack(spacing: 3) {
+                if state.semanticColor?.isBestSegment == true {
+                    Image(systemName: "star.fill").font(.caption2).imageScale(.small)
+                }
+                Text(state.value).monospacedDigit()
+            }
+            .foregroundStyle(palette.swiftUIColor(state.semanticColor, fallback: state.valueColor) ?? .primary)
         }
         .font(.subheadline)
         .lineLimit(1)
         .padding(.horizontal, 14)
         .padding(.vertical, 6)
         .background(GradientFill(gradient: state.background))
-        .accessibilityElement(children: .combine)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(state.key)
+        .accessibilityValue([state.value, state.semanticColor?.spokenDescription].compactMap { $0 }.joined(separator: ", "))
     }
 }
 

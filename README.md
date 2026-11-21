@@ -24,6 +24,14 @@ A native SwiftUI speedrun timer for iPhone and iPad, modelled on
 - New runs from scratch. Delete, duplicate and share as `.lss`.
 - Runs autosave as `.lss` in `Documents/Splits`, which shows up in the Files app.
 - The screen stays awake during an attempt.
+- Reopens the splits you had open when the app was last closed.
+- Accessibility, following Apple's Human Interface Guidelines:
+  - split colors meet 4.5:1 contrast (7:1 with Increase Contrast), with a color-blind-friendly
+    blue/orange option (timer menu → Split Colors)
+  - gold segments are marked with a star, not just a color
+  - VoiceOver reads what each color means ("behind, losing time")
+  - the timer and splits scale with Dynamic Type; splits switch to two lines at the largest sizes
+  - Reduce Motion is respected
 
 ## Layout
 

@@ -12,6 +12,9 @@ struct RunEditorView: View {
 
     @State private var iconItem: PhotosPickerItem?
     @State private var confirmingClear = false
+    /// Delete/reorder controls appear only after tapping Edit (HIG: Lists and tables).
+    /// Swipe-to-delete works either way.
+    @State private var editMode: EditMode = .inactive
 
     var body: some View {
         Form {
@@ -49,7 +52,17 @@ struct RunEditorView: View {
                         Label("Add Segment", systemImage: "plus")
                     }
                 } header: {
-                    Text("Segments")
+                    HStack {
+                        Text("Segments")
+                        Spacer()
+                        Button(editMode.isEditing ? "Done" : "Edit") {
+                            withAnimation { editMode = editMode.isEditing ? .inactive : .active }
+                        }
+                        .font(.subheadline.weight(.semibold))
+                        .textCase(nil)
+                        .accessibilityHint(editMode.isEditing ? "Stops reordering and deleting segments"
+                                                              : "Shows controls to reorder and delete segments")
+                    }
                 } footer: {
                     Text("Times are personal-best split times (e.g. 1:23.45). \"Best\" is your best segment.")
                 }
@@ -59,7 +72,7 @@ struct RunEditorView: View {
                 }
             }
         }
-        .environment(\.editMode, .constant(.active))
+        .environment(\.editMode, $editMode)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {

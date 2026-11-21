@@ -23,8 +23,6 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
-	<key>UIUserInterfaceStyle</key>
-	<string>Dark</string>
 	<!-- Expose the Splits folder in the Files app. -->
 	<key>UIFileSharingEnabled</key>
 	<true/>

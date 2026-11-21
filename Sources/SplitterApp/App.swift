@@ -10,7 +10,6 @@ struct SplitterApp: App {
         WindowGroup {
             LibraryView()
                 .environment(library)
-                .preferredColorScheme(.dark)
                 .tint(.splitterAccent)
         }
     }

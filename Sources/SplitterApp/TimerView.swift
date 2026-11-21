@@ -15,25 +15,35 @@ struct TimerView: View {
     @State private var editor: RunEditorSession?
     @State private var errorMessage: String?
     @AppStorage("hapticsEnabled") private var hapticsEnabled = true
+    @AppStorage("splitColorScheme") private var colorSchemeChoice = SplitColorScheme.standard.rawValue
+    @Environment(\.colorSchemeContrast) private var systemContrast
+
+    private var palette: Palette {
+        Palette(scheme: SplitColorScheme(rawValue: colorSchemeChoice) ?? .standard,
+                increasedContrast: systemContrast == .increased)
+    }
 
     private var isActive: Bool { session.phase == .running || session.phase == .paused }
 
     var body: some View {
-        VStack(spacing: 0) {
-            // Redraw at display rate only while the clock is moving.
-            TimelineView(.animation(minimumInterval: 1 / 30, paused: session.phase != .running)) { context in
-                Group {
-                    if let state = session.state {
-                        LayoutStateView(state: state, session: session)
-                    } else {
-                        ContentUnavailableView("Couldn't render splits", systemImage: "exclamationmark.triangle",
-                                               description: Text(session.lastError ?? ""))
-                    }
+        // Redraw at display rate only while the clock is moving.
+        TimelineView(.animation(minimumInterval: 1 / 30, paused: session.phase != .running)) { context in
+            Group {
+                if let state = session.state {
+                    LayoutStateView(state: state, session: session)
+                } else {
+                    ContentUnavailableView("Couldn't Show Splits", systemImage: "exclamationmark.triangle",
+                                           description: Text(session.lastError ?? ""))
                 }
-                .onChange(of: context.date) { _, _ in session.refresh() }
             }
-            controls
+            .onChange(of: context.date) { _, _ in session.refresh() }
         }
+        // Controls float above the layout, whose background extends to the screen edge (HIG: Layout).
+        .safeAreaInset(edge: .bottom, spacing: 0) { controls }
+        .environment(\.splitPalette, palette)
+        // LiveSplit layouts are designed for a dark background, so the timer stays dark even when
+        // the rest of the app follows the system appearance.
+        .preferredColorScheme(.dark)
         .navigationTitle(session.categoryName)
         .navigationBarTitleDisplayMode(.inline)
         .navigationBarBackButtonHidden(isActive)
@@ -69,7 +79,7 @@ struct TimerView: View {
                 }
             }
         }
-        .alert("Something went wrong", isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
+        .alert("Couldn't Save Splits", isPresented: .init(get: { errorMessage != nil }, set: { if !$0 { errorMessage = nil } })) {
             Button("OK", role: .cancel) {}
         } message: {
             Text(errorMessage ?? "")
@@ -85,7 +95,7 @@ struct TimerView: View {
                     .font(.title2.weight(.bold))
                     .frame(maxWidth: .infinity, minHeight: 72)
             }
-            .buttonStyle(.borderedProminent)
+            .primaryControlStyle()
             .tint(primaryTint)
             .disabled(session.phase == .ended)
             .keyboardShortcut(.space, modifiers: [])
@@ -111,7 +121,7 @@ struct TimerView: View {
         .padding(.horizontal, 16)
         .padding(.top, 12)
         .padding(.bottom, 8)
-        .background(.bar)
+        .controlPanelBackground()
     }
 
     private func controlButton(_ title: String, systemImage: String, enabled: Bool,
@@ -124,7 +134,7 @@ struct TimerView: View {
                 .labelStyle(.verticalCompact)
                 .frame(maxWidth: .infinity, minHeight: 48)
         }
-        .buttonStyle(.bordered)
+        .secondaryControlStyle()
         .disabled(!enabled)
     }
 
@@ -187,11 +197,38 @@ struct TimerView: View {
                 if let url = session.fileURL {
                     ShareLink(item: url) { Label("Share .lss", systemImage: "square.and.arrow.up") }
                 }
+                Picker(selection: $colorSchemeChoice) {
+                    ForEach(SplitColorScheme.allCases) { scheme in
+                        Text(scheme.label).tag(scheme.rawValue)
+                    }
+                } label: {
+                    Label("Split Colors", systemImage: "paintpalette")
+                }
+                .pickerStyle(.menu)
                 Toggle(isOn: $hapticsEnabled) { Label("Haptics", systemImage: "hand.tap") }
             } label: {
                 Label("Options", systemImage: "ellipsis.circle")
             }
         }
+    }
+}
+
+// MARK: Control styling
+
+private extension View {
+    /// Liquid Glass on iOS 26+, where controls sit on a glass layer above content; earlier
+    /// systems keep the bordered styles on an opaque bar.
+    @ViewBuilder func primaryControlStyle() -> some View {
+        if #available(iOS 26.0, *) { buttonStyle(.glassProminent) } else { buttonStyle(.borderedProminent) }
+    }
+
+    @ViewBuilder func secondaryControlStyle() -> some View {
+        if #available(iOS 26.0, *) { buttonStyle(.glass) } else { buttonStyle(.bordered) }
+    }
+
+    @ViewBuilder func controlPanelBackground() -> some View {
+        // HIG (Toolbars): avoid custom backgrounds behind glass controls.
+        if #available(iOS 26.0, *) { self } else { background(.bar) }
     }
 }
 

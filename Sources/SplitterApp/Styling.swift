@@ -12,6 +12,29 @@ extension Color {
     static let splitterAccent = Color(.sRGB, red: 0.2, green: 0.45, blue: 0.96, opacity: 1)
 }
 
+// MARK: Semantic colours
+
+private struct SplitPaletteKey: EnvironmentKey {
+    static let defaultValue = Palette()
+}
+
+extension EnvironmentValues {
+    /// Colours for ahead/behind/gold states; set by the timer screen from the user's setting and
+    /// the system Increase Contrast option.
+    var splitPalette: Palette {
+        get { self[SplitPaletteKey.self] }
+        set { self[SplitPaletteKey.self] = newValue }
+    }
+}
+
+extension Palette {
+    /// The colour for a semantic state, falling back to livesplit-core's own colour (if any).
+    func swiftUIColor(_ semantic: SemanticColor?, fallback: RGBA?) -> Color? {
+        if let semantic, let c = color(for: semantic) { return Color(c) }
+        return fallback.map(Color.init)
+    }
+}
+
 /// Renders a livesplit-core gradient as a view background.
 /// `alternatingIndex` picks the colour for alternating row backgrounds.
 struct GradientFill: View {

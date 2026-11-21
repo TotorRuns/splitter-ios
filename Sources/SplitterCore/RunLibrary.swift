@@ -68,6 +68,14 @@ public final class RunLibrary {
         return url
     }
 
+    /// The splits file with this name in the library, if it still exists. Used to reopen the last
+    /// splits on launch; only the name is stored because iOS may move the app's container on update.
+    public func url(forFileNamed name: String) -> URL? {
+        guard !name.isEmpty, !name.contains("/") else { return nil }
+        let url = directory.appendingPathComponent(name)
+        return FileManager.default.fileExists(atPath: url.path) ? url : nil
+    }
+
     public func delete(_ entry: RunEntry) throws {
         try FileManager.default.removeItem(at: entry.url)
         reload()

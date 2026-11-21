@@ -244,11 +244,13 @@ public struct KeyValueState: Decodable, Sendable {
     public var valueColor: RGBA?
     public var key: String
     public var value: String
+    public var semanticColor: SemanticColor?
 
     enum CodingKeys: String, CodingKey {
         case background, key, value
         case keyColor = "key_color"
         case valueColor = "value_color"
+        case semanticColor = "semantic_color"
     }
 }
 
