@@ -8,6 +8,8 @@ extension UTType {
     static let splitterSplit = UTType(importedAs: "mibe.split", conformingTo: .package)
     /// LiveSplit splits.
     static let liveSplit = UTType(importedAs: "mibe.liveSplit", conformingTo: .xml)
+    /// GreenSplit splits (JSON).
+    static let greenSplit = UTType(importedAs: "com.totorruns.splitter.greensplit", conformingTo: .json)
 }
 
 /// List of saved splits, plus import / new / delete. Equivalent of Splitter's welcome window.
@@ -64,7 +66,7 @@ struct LibraryView: View {
             }
         }
         .fileImporter(isPresented: $importing,
-                      allowedContentTypes: [.splitterSplit, .liveSplit, .json, .xml, .folder, .data],
+                      allowedContentTypes: [.splitterSplit, .liveSplit, .greenSplit, .json, .xml, .folder, .data],
                       allowsMultipleSelection: true) { result in
             switch result {
             case .success(let urls): importFiles(urls)
@@ -108,7 +110,7 @@ struct LibraryView: View {
         ContentUnavailableView {
             Label("No Splits Yet", systemImage: "stopwatch")
         } description: {
-            Text("Import a .split, .lss or Splits.io .json file, or create new splits.")
+            Text("Import a .split, .lss, .gss or Splits.io .json file, or create new splits.")
         } actions: {
             Button("Import Splits") { importing = true }.buttonStyle(.borderedProminent)
             Button("New Splits") { newRunEditor = RunEditorSession.newRun() }

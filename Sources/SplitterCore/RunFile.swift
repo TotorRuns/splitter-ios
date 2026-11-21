@@ -19,6 +19,7 @@ public enum RunFileError: LocalizedError, Equatable {
 /// - Splitter `.split` bundles (Splitter 4+: `splits.lss` inside; older: `runInfo.json`)
 /// - LiveSplit `.lss`
 /// - Splits.io `.json`
+/// - GreenSplit `.gss`
 /// plus anything else livesplit-core can parse (WSplit, Llanfair, Time Split Tracker, …).
 public enum RunFile {
     public static let splitBundleLSS = "splits.lss"
@@ -37,6 +38,7 @@ public enum RunFile {
 
     /// Parses raw splits data with livesplit-core's format-sniffing parser.
     public static func parse(_ data: Data, loadFilesPath: String = "") throws -> Run {
+        if GreenSplit.looksLikeGreenSplit(data) { return try GreenSplit.run(from: data) }
         var bytes = data
         let result = bytes.withUnsafeMutableBytes { buf in
             Run.parse(buf.baseAddress, buf.count, loadFilesPath)

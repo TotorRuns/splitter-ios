@@ -1,0 +1,272 @@
+{
+  "format": "greensplit.splits",
+  "version": 1,
+  "run": {
+    "gameName": "Example Quest & Friends",
+    "categoryName": "Any% <Glitchless>",
+    "gameIcon": "",
+    "attemptCount": 3,
+    "offsetNs": "-1500000000",
+    "customComparisons": [
+      "Personal Best",
+      "Goal"
+    ],
+    "mainOrder": [],
+    "branches": [],
+    "metadata": {
+      "platform": "Switch",
+      "region": "EUR",
+      "usesEmulator": false,
+      "speedrunComRunId": ""
+    },
+    "attemptHistory": [
+      {
+        "index": 1,
+        "branch": "",
+        "completed": false,
+        "startedAt": "07/14/2026 19:30:47",
+        "startedSynced": true,
+        "endedAt": "07/14/2026 19:31:10",
+        "endedSynced": true,
+        "time": {}
+      },
+      {
+        "index": 2,
+        "branch": "",
+        "completed": true,
+        "startedAt": "07/15/2026 10:00:00",
+        "startedSynced": true,
+        "endedAt": "07/15/2026 10:05:00",
+        "endedSynced": true,
+        "time": {
+          "realTimeNs": "300000000000"
+        }
+      },
+      {
+        "index": 3,
+        "branch": "",
+        "completed": false,
+        "startedAt": "2026-11-20T12:10:39.378Z",
+        "endedAt": "2026-11-20T12:13:00.000Z",
+        "time": {
+          "realTimeNs": "118000000000"
+        },
+        "pauseTimeNs": "4500000000"
+      }
+    ],
+    "segments": [
+      {
+        "id": "seg-0",
+        "name": "Tutorial",
+        "icon": "",
+        "depth": 1,
+        "sectionName": "",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "28250000000",
+          "gameTimeNs": "27250000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "30500000000",
+            "gameTimeNs": "28500000000"
+          },
+          "Goal": {
+            "realTimeNs": "29000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "30500000000"
+            }
+          },
+          {
+            "attempt": 3,
+            "time": {
+              "realTimeNs": "31000000000"
+            }
+          }
+        ]
+      },
+      {
+        "id": "seg-1",
+        "name": "Forest",
+        "icon": "",
+        "depth": 1,
+        "sectionName": "",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "41000000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "75000000000"
+          },
+          "Goal": {
+            "realTimeNs": "72000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "44500000000"
+            }
+          },
+          {
+            "attempt": 3,
+            "time": {
+              "realTimeNs": "41000000000"
+            }
+          }
+        ]
+      },
+      {
+        "id": "seg-2",
+        "name": "Boss 1",
+        "icon": "",
+        "depth": 0,
+        "sectionName": "World 1",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "44000000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "120750000000"
+          },
+          "Goal": {
+            "realTimeNs": "115000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "45750000000"
+            }
+          },
+          {
+            "attempt": 3,
+            "time": {
+              "realTimeNs": "46000000000"
+            }
+          }
+        ]
+      },
+      {
+        "id": "alt-0",
+        "name": "Secret Shortcut",
+        "depth": 0,
+        "sectionName": "",
+        "forkedFrom": "seg-2",
+        "bestSegmentTime": {
+          "realTimeNs": "10000000000"
+        },
+        "comparisons": {},
+        "history": []
+      },
+      {
+        "id": "seg-3",
+        "name": "Caves",
+        "icon": "",
+        "depth": 1,
+        "sectionName": "",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "55500000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "180000000000"
+          },
+          "Goal": {
+            "realTimeNs": "170000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "59250000000"
+            }
+          }
+        ]
+      },
+      {
+        "id": "seg-4",
+        "name": "Boss 2",
+        "icon": "",
+        "depth": 0,
+        "sectionName": "",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "58000000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "241125000000"
+          },
+          "Goal": {
+            "realTimeNs": "230000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "61125000000"
+            }
+          }
+        ]
+      },
+      {
+        "id": "seg-5",
+        "name": "Ending",
+        "icon": "",
+        "depth": 0,
+        "sectionName": "",
+        "forkedFrom": "",
+        "linkedSource": null,
+        "sectionIcon": "",
+        "goldAdjustments": [],
+        "bestSegmentTime": {
+          "realTimeNs": "56000000000"
+        },
+        "comparisons": {
+          "Personal Best": {
+            "realTimeNs": "300000000000"
+          },
+          "Goal": {
+            "realTimeNs": "290000000000"
+          }
+        },
+        "history": [
+          {
+            "attempt": 2,
+            "time": {
+              "realTimeNs": "58875000000"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

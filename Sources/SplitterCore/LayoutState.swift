@@ -157,19 +157,30 @@ public struct SplitColumn: Decodable, Sendable {
 }
 
 public struct SplitRow: Decodable, Sendable, Identifiable {
+    public enum Kind: Sendable { case segment, groupHeader, placeholder }
+
     public var icon: String
     public var name: String
     public var columns: [SplitColumn]
     public var isCurrentSplit: Bool
     public var isIndented: Bool
     public var showSeparatorBefore: Bool
-    /// Segment index, or `nil` for the filler rows livesplit-core adds to pad the list
-    /// (those carry `usize::MAX - 1`, which doesn't fit in `Int`).
-    public var index: Int?
+    /// livesplit-core's row index: the segment index for segment rows. Segment-group header
+    /// rows and the filler rows that pad the list use values counting down from `UInt64.max`.
+    public var rawIndex: UInt64
     public var sectionIndex: Int
 
-    public var id: Int { sectionIndex }
-    public var isPlaceholder: Bool { index == nil }
+    /// Unique per row (segment indexes and the high marker values never collide).
+    public var id: UInt64 { rawIndex }
+    /// The segment index, or nil for group headers and filler rows.
+    public var index: Int? { rawIndex < UInt64(Int32.max) ? Int(rawIndex) : nil }
+
+    public var kind: Kind {
+        if index != nil { return .segment }
+        return name.isEmpty && columns.isEmpty ? .placeholder : .groupHeader
+    }
+    public var isPlaceholder: Bool { kind == .placeholder }
+    public var isGroupHeader: Bool { kind == .groupHeader }
 
     enum CodingKeys: String, CodingKey {
         case icon, name, columns, index
@@ -181,15 +192,14 @@ public struct SplitRow: Decodable, Sendable, Identifiable {
 
     public init(from decoder: Decoder) throws {
         let c = try decoder.container(keyedBy: CodingKeys.self)
-        icon = try c.decode(String.self, forKey: .icon)
+        icon = (try? c.decode(String.self, forKey: .icon)) ?? ""
         name = try c.decode(String.self, forKey: .name)
         columns = try c.decode([SplitColumn].self, forKey: .columns)
-        isCurrentSplit = try c.decode(Bool.self, forKey: .isCurrentSplit)
+        isCurrentSplit = (try? c.decode(Bool.self, forKey: .isCurrentSplit)) ?? false
         isIndented = (try? c.decode(Bool.self, forKey: .isIndented)) ?? false
         showSeparatorBefore = (try? c.decode(Bool.self, forKey: .showSeparatorBefore)) ?? false
-        let raw = try c.decode(UInt64.self, forKey: .index)
-        index = raw < UInt64(Int32.max) ? Int(raw) : nil
-        sectionIndex = (try? c.decode(Int.self, forKey: .sectionIndex)) ?? Int(raw % 1_000_000)
+        rawIndex = try c.decode(UInt64.self, forKey: .index)
+        sectionIndex = (try? c.decode(Int.self, forKey: .sectionIndex)) ?? 0
     }
 }
 

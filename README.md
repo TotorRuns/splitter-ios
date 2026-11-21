@@ -11,6 +11,8 @@ A native SwiftUI speedrun timer for iPhone and iPad, modelled on
   - `.split` bundles (Splitter 4+, plus the older `runInfo.json` format)
   - LiveSplit `.lss`
   - Splits.io `.json`
+  - GreenSplit `.gss`, including attempt history, golds, custom comparisons and subsplit groups
+    (only the main route is imported, not alternative branches)
   - everything else livesplit-core parses (WSplit, Llanfair, Time Split Tracker, …)
 - The default LiveSplit layout (title, splits, timer, previous segment), rendered natively with
   livesplit-core's ahead/behind/gold colours.

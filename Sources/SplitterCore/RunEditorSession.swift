@@ -24,6 +24,24 @@ public struct RunEditorState: Decodable, Sendable {
             case segmentTime = "segment_time"
             case bestSegmentTime = "best_segment_time"
         }
+
+        public init(from decoder: Decoder) throws {
+            let c = try decoder.container(keyedBy: CodingKeys.self)
+            kind = try c.decode(String.self, forKey: .kind)
+            segmentIndex = try? c.decodeIfPresent(Int.self, forKey: .segmentIndex)
+            name = try? c.decodeIfPresent(String.self, forKey: .name)
+            splitTime = try? c.decodeIfPresent(String.self, forKey: .splitTime)
+            segmentTime = try? c.decodeIfPresent(String.self, forKey: .segmentTime)
+            bestSegmentTime = try? c.decodeIfPresent(String.self, forKey: .bestSegmentTime)
+            // Segment rows use "Active"/"Selected"/"NotSelected"; segment-group rows use a Bool.
+            if let state = try? c.decodeIfPresent(String.self, forKey: .selected) {
+                selected = state
+            } else if let flag = try? c.decodeIfPresent(Bool.self, forKey: .selected) {
+                selected = flag ? "Selected" : "NotSelected"
+            } else {
+                selected = nil
+            }
+        }
     }
 
     public struct Buttons: Decodable, Sendable {

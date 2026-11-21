@@ -94,7 +94,7 @@ struct SplitsComponent: View {
     var session: TimerSession
 
     private var rows: [SplitRow] { state.splits.filter { !$0.isPlaceholder } }
-    private var currentID: Int? { rows.first(where: \.isCurrentSplit)?.id }
+    private var currentID: UInt64? { rows.first(where: \.isCurrentSplit)?.id }
 
     var body: some View {
         ScrollViewReader { proxy in
@@ -157,6 +157,7 @@ struct SplitRowView: View {
                     .frame(width: 24, height: 24)
             }
             Text(row.name)
+                .fontWeight(row.isGroupHeader ? .semibold : nil)
                 .lineLimit(1)
                 .padding(.leading, row.isIndented ? 16 : 0)
                 .frame(maxWidth: .infinity, alignment: .leading)
