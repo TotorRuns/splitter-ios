@@ -10,6 +10,15 @@
       "bundleIdentifier": "com.totorruns.splitter",
       "versions": [
         {
+          "version": "1.1",
+          "buildVersion": "202611211133",
+          "date": "2026-11-21T11:34:17+00:00",
+          "localizedDescription": "Splitter 1.1: GreenSplit (.gss) import; higher-contrast split colors with a color-blind-friendly option; star markers on gold segments; VoiceOver and Dynamic Type support; Live Activity on the Lock Screen and Dynamic Island; Current Pace, Sum of Best and Possible Time Save; landscape layout; keyboard shortcuts; game icons from speedrun.com; reopens your last splits on launch.",
+          "downloadURL": "https://github.com/TotorRuns/splitter-ios/releases/download/v1.1-202611211133/Splitter-1.1-202611211133.ipa",
+          "size": 7580185,
+          "minOSVersion": "17.0"
+        },
+        {
           "version": "1.0",
           "buildVersion": "202611211041",
           "date": "2026-11-21T10:42:19+00:00",
