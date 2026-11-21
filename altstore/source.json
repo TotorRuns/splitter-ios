@@ -11,6 +11,15 @@
       "versions": [
         {
           "version": "1.0",
+          "buildVersion": "202611210814",
+          "date": "2026-11-21T08:14:41+00:00",
+          "localizedDescription": "Import GreenSplit (.gss) splits with attempt history, golds, comparisons and subsplit groups. Fixes the splits editor and timer list for runs with subsplit groups.",
+          "downloadURL": "https://github.com/TotorRuns/splitter-ios/releases/download/v1.0-202611210814/Splitter-1.0-202611210814.ipa",
+          "size": 6804610,
+          "minOSVersion": "17.0"
+        },
+        {
+          "version": "1.0",
           "buildVersion": "202611210738",
           "date": "2026-11-21T07:39:12+00:00",
           "localizedDescription": "First release of Splitter for iOS.",
