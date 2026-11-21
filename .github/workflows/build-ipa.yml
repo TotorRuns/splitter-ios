@@ -1,0 +1,152 @@
+# Builds the Splitter iOS app installer (.ipa) on demand and, optionally, publishes it to
+# GitHub Releases and the AltStore Classic source (altstore/source.json).
+#
+# Run it locally with nektos/act through the wrapper script, which runs the job on this machine
+# and unpacks the result:
+#   scripts/build-ipa.sh
+#   scripts/build-ipa.sh --input configuration=debug --input run_tests=false
+#   scripts/build-ipa.sh --input publish=true --input release_notes="Fixed X"
+#
+# The IPA (plus a .sha256) ends up in dist/.
+#
+# Needs a Linux machine already set up for xtool: Swift 6.4, xtool on PATH, and the Darwin
+# SDK built from Xcode.xip (`xtool sdk install Xcode.xip`). GitHub's hosted runners don't
+# have that SDK, so this is meant for act or a self-hosted runner.
+name: Build IPA
+
+on:
+  workflow_dispatch:
+    inputs:
+      configuration:
+        description: Build configuration
+        type: choice
+        options: [release, debug]
+        default: release
+      run_tests:
+        description: Run the core tests on Linux first
+        type: boolean
+        default: true
+      rebuild_livesplit_core:
+        description: Rebuild the vendored livesplit-core libraries first (needs Rust + aarch64-apple-ios)
+        type: boolean
+        default: false
+      publish:
+        description: Publish to GitHub Releases and update the AltStore source (release builds only)
+        type: boolean
+        default: false
+      release_notes:
+        description: What's new (shown in AltStore and on the release)
+        type: string
+        default: ""
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    env:
+      CONFIGURATION: ${{ inputs.configuration || 'release' }}
+      PUBLISH: ${{ inputs.publish == true || inputs.publish == 'true' }}
+      # gh and git use this to create the release and push the source update.
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Check toolchain
+        run: |
+          swift --version
+          xtool --version
+          if ! xtool sdk status | grep -q "is installed"; then
+            echo "::error::Darwin SDK missing. Run: xtool sdk install /path/to/Xcode.xip"
+            exit 1
+          fi
+          command -v zip >/dev/null || { echo "::error::xtool needs 'zip' to package the IPA"; exit 1; }
+          if [ "$PUBLISH" = true ]; then
+            [ "$CONFIGURATION" = release ] || { echo "::error::Only release builds can be published"; exit 1; }
+            [ -n "$GH_TOKEN" ] || { echo "::error::Publishing needs GITHUB_TOKEN (scripts/build-ipa.sh passes it from gh)"; exit 1; }
+            gh repo view --json nameWithOwner -q .nameWithOwner
+          fi
+
+      - name: Stamp build number
+        id: version
+        run: |
+          # AltStore only offers an update when version or build differs, so every build gets a
+          # unique, increasing CFBundleVersion. CFBundleShortVersionString stays as set in Info.plist.
+          version=$(sed -n '/CFBundleShortVersionString/{n;s/.*<string>\(.*\)<\/string>.*/\1/p;}' Info.plist)
+          build=$(date -u +%Y%m%d%H%M)
+          sed -i "/<key>CFBundleVersion<\/key>/{n;s|<string>.*</string>|<string>${build}</string>|;}" Info.plist
+          grep -A1 CFBundleVersion Info.plist
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+
+      - name: Rebuild livesplit-core
+        if: ${{ inputs.rebuild_livesplit_core == true || inputs.rebuild_livesplit_core == 'true' }}
+        run: scripts/build-livesplit-core.sh
+
+      - name: Test core (Linux)
+        if: ${{ inputs.run_tests != false && inputs.run_tests != 'false' }}
+        run: swift test
+
+      - name: Build IPA
+        run: xtool dev build --configuration "$CONFIGURATION" --ipa
+
+      - name: Name the installer
+        id: name
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+        run: |
+          suffix=""; [ "$CONFIGURATION" = release ] || suffix="-$CONFIGURATION"
+          name="Splitter-${VERSION}-${BUILD}${suffix}.ipa"
+          mkdir -p dist
+          mv xtool/Splitter.ipa "dist/$name"
+          (cd dist && sha256sum "$name" > "$name.sha256")
+          echo "file=$name" >> "$GITHUB_OUTPUT"
+          echo "### Built \`$name\`" >> "$GITHUB_STEP_SUMMARY"
+          ls -la dist
+
+      - name: Upload IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: splitter-ipa
+          path: dist/
+          if-no-files-found: error
+
+      - name: Publish GitHub release
+        id: release
+        if: ${{ env.PUBLISH == 'true' }}
+        env:
+          VERSION: ${{ steps.version.outputs.version }}
+          BUILD: ${{ steps.version.outputs.build }}
+          FILE: ${{ steps.name.outputs.file }}
+          NOTES: ${{ inputs.release_notes }}
+        run: |
+          repo=$(gh repo view --json nameWithOwner -q .nameWithOwner)
+          tag="v${VERSION}-${BUILD}"
+          notes="${NOTES:-Splitter ${VERSION} (build ${BUILD}).}"
+          printf '%s\n\nInstall with AltStore Classic: add the source\nhttps://raw.githubusercontent.com/%s/main/altstore/source.json\n' \
+            "$notes" "$repo" > release-notes.md
+          gh release create "$tag" "dist/$FILE" "dist/$FILE.sha256" \
+            --repo "$repo" --title "Splitter $VERSION ($BUILD)" --notes-file release-notes.md \
+            --target "$(git rev-parse HEAD)"
+          echo "repo=$repo" >> "$GITHUB_OUTPUT"
+          echo "url=https://github.com/$repo/releases/download/$tag/$FILE" >> "$GITHUB_OUTPUT"
+
+      - name: Update AltStore source
+        if: ${{ env.PUBLISH == 'true' }}
+        env:
+          FILE: ${{ steps.name.outputs.file }}
+          REPO: ${{ steps.release.outputs.repo }}
+          URL: ${{ steps.release.outputs.url }}
+          NOTES: ${{ inputs.release_notes }}
+        run: |
+          # Info.plist was only stamped for this build; don't commit that.
+          git checkout -- Info.plist
+          python3 -I scripts/update-altstore-source.py --ipa "dist/$FILE" --repo "$REPO" \
+            --download-url "$URL" --notes "$NOTES"
+          git add altstore/source.json
+          git commit -m "AltStore source: ${FILE%.ipa}"
+          git push origin HEAD:main
+          echo "AltStore source: https://raw.githubusercontent.com/$REPO/main/altstore/source.json" >> "$GITHUB_STEP_SUMMARY"

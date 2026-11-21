@@ -1,0 +1,13 @@
+.DS_Store
+/.build
+/.swiftpm
+/xtool
+/Packages
+.sourcekit-lsp
+/build-artifacts
+/.bsp
+/dist
+
+# act / workflow output
+/build-artifacts
+/dist

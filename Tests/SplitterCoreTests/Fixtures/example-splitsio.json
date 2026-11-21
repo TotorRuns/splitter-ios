@@ -1,0 +1,88 @@
+{
+  "_schemaVersion": "v1.0.1",
+  "timer": {
+    "shortname": "exchange",
+    "longname": "Splits.io Exchange Format",
+    "version": ""
+  },
+  "attempts": {
+    "total": 12,
+    "histories": []
+  },
+  "game": {
+    "longname": "Example Quest",
+    "shortname": "eq"
+  },
+  "category": {
+    "longname": "Any%",
+    "shortname": "anypct"
+  },
+  "runners": [],
+  "segments": [
+    {
+      "name": "Tutorial",
+      "endedAt": {
+        "realtimeMS": 41500,
+        "gametimeMS": 0
+      },
+      "bestDuration": {
+        "realtimeMS": 39000,
+        "gametimeMS": 0
+      },
+      "isSkipped": false,
+      "histories": []
+    },
+    {
+      "name": "Forest",
+      "endedAt": {
+        "realtimeMS": 132250,
+        "gametimeMS": 0
+      },
+      "bestDuration": {
+        "realtimeMS": 85100,
+        "gametimeMS": 0
+      },
+      "isSkipped": false,
+      "histories": []
+    },
+    {
+      "name": "Caves",
+      "endedAt": {
+        "realtimeMS": 260900,
+        "gametimeMS": 0
+      },
+      "bestDuration": {
+        "realtimeMS": 120000,
+        "gametimeMS": 0
+      },
+      "isSkipped": false,
+      "histories": []
+    },
+    {
+      "name": "Castle",
+      "endedAt": {
+        "realtimeMS": 401020,
+        "gametimeMS": 0
+      },
+      "bestDuration": {
+        "realtimeMS": 135600,
+        "gametimeMS": 0
+      },
+      "isSkipped": false,
+      "histories": []
+    },
+    {
+      "name": "Final Boss",
+      "endedAt": {
+        "realtimeMS": 515480,
+        "gametimeMS": 0
+      },
+      "bestDuration": {
+        "realtimeMS": 110300,
+        "gametimeMS": 0
+      },
+      "isSkipped": false,
+      "histories": []
+    }
+  ]
+}

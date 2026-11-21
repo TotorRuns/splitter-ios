@@ -1,0 +1,6 @@
+# Settings for running the workflows locally with nektos/act.
+#
+# Use scripts/build-ipa.sh rather than calling act directly. The build job has to run on this
+# machine (it needs the installed Swift toolchain, xtool and Darwin iOS SDK), and act ignores
+# "-P ubuntu-latest=-self-hosted" and "--artifact-server-path" when they come from a project
+# .actrc, so the script passes them on the command line.

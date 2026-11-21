@@ -1,0 +1,4 @@
+module CLiveSplitCore [extern_c] {
+    header "CLiveSplitCore.h"
+    export *
+}
