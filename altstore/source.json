@@ -11,6 +11,15 @@
       "versions": [
         {
           "version": "1.0",
+          "buildVersion": "202611210836",
+          "date": "2026-11-21T08:36:49+00:00",
+          "localizedDescription": "The timer's controls go back to standard buttons; the Liquid Glass styling on them didn't look right.",
+          "downloadURL": "https://github.com/TotorRuns/splitter-ios/releases/download/v1.0-202611210836/Splitter-1.0-202611210836.ipa",
+          "size": 7000706,
+          "minOSVersion": "17.0"
+        },
+        {
+          "version": "1.0",
           "buildVersion": "202611210833",
           "date": "2026-11-21T08:33:38+00:00",
           "localizedDescription": "Accessibility and design update: higher-contrast split colors with a color-blind-friendly option (timer menu > Split Colors), star markers on gold segments, VoiceOver describes ahead/behind, Dynamic Type support, Edit button in the splits editor, reopens your last splits on launch, Liquid Glass controls on iOS 26, and light/dark mode outside the timer.",
