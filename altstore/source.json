@@ -11,6 +11,15 @@
       "versions": [
         {
           "version": "1.0",
+          "buildVersion": "202611210817",
+          "date": "2026-11-21T08:18:20+00:00",
+          "localizedDescription": "Fixes the \"Couldn't open splits\" error shown when Splitter is opened from AltStore.",
+          "downloadURL": "https://github.com/TotorRuns/splitter-ios/releases/download/v1.0-202611210817/Splitter-1.0-202611210817.ipa",
+          "size": 6805418,
+          "minOSVersion": "17.0"
+        },
+        {
+          "version": "1.0",
           "buildVersion": "202611210814",
           "date": "2026-11-21T08:14:41+00:00",
           "localizedDescription": "Import GreenSplit (.gss) splits with attempt history, golds, comparisons and subsplit groups. Fixes the splits editor and timer list for runs with subsplit groups.",
