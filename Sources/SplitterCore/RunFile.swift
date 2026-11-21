@@ -5,12 +5,14 @@ public enum RunFileError: LocalizedError, Equatable {
     case unreadable(String)
     case unsupportedFormat
     case noSegments
+    case notAFile(String)
 
     public var errorDescription: String? {
         switch self {
         case .unreadable(let reason): "The file couldn't be read: \(reason)"
         case .unsupportedFormat: "This file isn't a splits file Splitter understands."
         case .noSegments: "The splits file has no segments."
+        case .notAFile(let url): "\(url) isn't a file."
         }
     }
 }
@@ -26,7 +28,15 @@ public enum RunFile {
     public static let splitBundleLegacyInfo = "runInfo.json"
 
     /// Parses a file or `.split` directory at `url`.
+    /// Whether a URL the app was opened with is a splits file to import. Apps are also launched
+    /// through custom-scheme URLs, e.g. AltStore's "Open" button uses `altstore-<bundle id>://`;
+    /// those aren't files and must be ignored.
+    public static func isImportable(_ url: URL) -> Bool {
+        url.isFileURL
+    }
+
     public static func load(from url: URL) throws -> Run {
+        guard url.isFileURL else { throw RunFileError.notAFile(url.absoluteString) }
         var isDir: ObjCBool = false
         if FileManager.default.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
             return try loadSplitBundle(url)

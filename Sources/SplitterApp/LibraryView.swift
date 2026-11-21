@@ -73,7 +73,11 @@ struct LibraryView: View {
             case .failure(let error): errorMessage = error.localizedDescription
             }
         }
-        .onOpenURL { url in importFiles([url], openFirst: true) }
+        .onOpenURL { url in
+            // AltStore launches apps via `altstore-<bundle id>://`; only import actual files.
+            guard RunFile.isImportable(url) else { return }
+            importFiles([url], openFirst: true)
+        }
         .sheet(item: $newRunEditor) { editor in
             NavigationStack {
                 RunEditorView(editor: editor, title: "New Splits") {
@@ -135,7 +139,8 @@ struct LibraryView: View {
             do {
                 imported.append(try library.importFile(at: url))
             } catch {
-                failures.append("\(url.lastPathComponent): \(error.localizedDescription)")
+                let name = url.lastPathComponent.isEmpty ? url.absoluteString : url.lastPathComponent
+                failures.append("\(name): \(error.localizedDescription)")
             }
         }
         if !failures.isEmpty { errorMessage = failures.joined(separator: "\n") }

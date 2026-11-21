@@ -89,6 +89,16 @@ final class SplitterCoreTests: XCTestCase {
         XCTAssertEqual(SplitsIO.seconds(3723456), "1:02:03.456")
     }
 
+    func testOnlyFileURLsAreImported() throws {
+        // AltStore's "Open" button launches the app with this URL; it must not be treated as a file.
+        let altstore = try XCTUnwrap(URL(string: "altstore-com.totorruns.splitter://"))
+        XCTAssertFalse(RunFile.isImportable(altstore))
+        XCTAssertThrowsError(try RunFile.load(from: altstore)) { error in
+            XCTAssertEqual(error as? RunFileError, .notAFile("altstore-com.totorruns.splitter://"))
+        }
+        XCTAssertTrue(RunFile.isImportable(fixture("sample.lss")))
+    }
+
     func testRejectsGarbage() {
         XCTAssertThrowsError(try RunFile.parse(Data("hello".utf8)))
     }
