@@ -8,6 +8,9 @@
 	<string>1.0</string>
 	<key>CFBundleVersion</key>
 	<string>1</string>
+	<!-- The running timer on the Lock Screen and in the Dynamic Island. -->
+	<key>NSSupportsLiveActivities</key>
+	<true/>
 	<key>UILaunchScreen</key>
 	<dict/>
 	<key>UISupportedInterfaceOrientations</key>

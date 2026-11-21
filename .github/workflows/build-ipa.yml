@@ -80,8 +80,12 @@ jobs:
           # unique, increasing CFBundleVersion. CFBundleShortVersionString stays as set in Info.plist.
           version=$(sed -n '/CFBundleShortVersionString/{n;s/.*<string>\(.*\)<\/string>.*/\1/p;}' Info.plist)
           build=$(date -u +%Y%m%d%H%M)
-          sed -i "/<key>CFBundleVersion<\/key>/{n;s|<string>.*</string>|<string>${build}</string>|;}" Info.plist
-          grep -A1 CFBundleVersion Info.plist
+          # The widget extension (Live Activity) must carry the same version and build as the app.
+          for plist in Info.plist Extensions/*-Info.plist; do
+            sed -i "/<key>CFBundleVersion<\/key>/{n;s|<string>.*</string>|<string>${build}</string>|;}" "$plist"
+            sed -i "/<key>CFBundleShortVersionString<\/key>/{n;s|<string>.*</string>|<string>${version}</string>|;}" "$plist"
+            grep -A1 CFBundleVersion "$plist"
+          done
           echo "version=$version" >> "$GITHUB_OUTPUT"
           echo "build=$build" >> "$GITHUB_OUTPUT"
 

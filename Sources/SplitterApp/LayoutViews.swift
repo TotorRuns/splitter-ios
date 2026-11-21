@@ -83,8 +83,9 @@ struct TitleComponent: View {
     }
 
     func attemptsText(_ attempts: UInt32) -> String {
-        if let finished = state.finishedRuns { return "\(finished)/\(attempts)" }
-        return "\(attempts)"
+        let noun = attempts == 1 ? "attempt" : "attempts"
+        if let finished = state.finishedRuns { return "\(finished) of \(attempts) \(noun) finished" }
+        return "\(attempts) \(noun)"
     }
 }
 

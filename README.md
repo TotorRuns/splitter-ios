@@ -14,10 +14,17 @@ A native SwiftUI speedrun timer for iPhone and iPad, modelled on
   - GreenSplit `.gss`, including attempt history, golds, custom comparisons and subsplit groups
     (only the main route is imported, not alternative branches)
   - everything else livesplit-core parses (WSplit, Llanfair, Time Split Tracker, …)
-- The default LiveSplit layout (title, splits, timer, previous segment), rendered natively with
-  livesplit-core's ahead/behind/gold colours.
+- The default LiveSplit layout (title, splits, timer, previous segment) plus current pace, sum of
+  best and possible time save, rendered natively with livesplit-core's ahead/behind/gold colours.
 - A large Start/Split button with haptics. Undo, Skip, Pause/Resume and Reset (save or discard
-  times). Space bar splits on a hardware keyboard.
+  times). Optional "Tap Splits to Split" (timer menu) turns the whole splits area into the split
+  button.
+- Hardware keyboard / Bluetooth remote shortcuts: Space split, Delete undo, → skip, P pause,
+  R reset.
+- Landscape layout on iPhone: splits on the left, controls in a column on the right.
+- Live Activity: the running timer and current split on the Lock Screen and in the Dynamic Island.
+- The library shows each run's personal best, split and attempt counts and game icon, most
+  recently played first.
 - Comparison switching (PB, Best Segments, Average, …) and Real/Game time.
 - A splits editor for game, category, attempts, offset, icon, segment names, PB split times and
   best segments. You can add, delete and reorder segments.
@@ -36,13 +43,16 @@ A native SwiftUI speedrun timer for iPhone and iPad, modelled on
 ## Layout
 
 ```
-Package.swift            SwiftPM manifest (xtool uses the single library product)
-xtool.yml                bundle ID, Info.plist, icon
-Info.plist               document types (.split / .lss / .json), file sharing
+Package.swift            SwiftPM manifest (library products: the app and the widget extension)
+xtool.yml                bundle ID, Info.plist, icon, extensions
+Info.plist               document types (.split / .lss / .json), file sharing, Live Activities
+Extensions/              Info.plist of the widget extension
 Sources/CLiveSplitCore   livesplit-core C header (generated)
 Sources/LiveSplitCore    livesplit-core Swift bindings (generated, unmodified)
 Sources/SplitterCore     timer session, layout-state model, file import, run editor, library
 Sources/SplitterApp      SwiftUI app
+Sources/SplitterActivity Live Activity data shared by the app and the extension
+Sources/SplitterWidgets  widget extension drawing the Live Activity
 Tests/SplitterCoreTests  core tests (run on Linux)
 Vendor/livesplit-core    prebuilt static libs: ios-arm64 (app), linux-x86_64 (tests)
 scripts/build-livesplit-core.sh   rebuilds the vendored libs + bindings

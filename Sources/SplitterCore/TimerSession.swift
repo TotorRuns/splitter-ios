@@ -22,6 +22,8 @@ public final class TimerSession {
     public private(set) var comparison: String = ""
     public private(set) var timingMethod: TimingMethod = .realTime
     public private(set) var hasUnsavedChanges = false
+    /// Observable copy of `currentSplitIndex`, so views can react to splits.
+    public private(set) var splitIndex: Int = -1
     public private(set) var lastError: String?
 
     /// Where the run is autosaved as `.lss`; `nil` for an unsaved run.
@@ -35,7 +37,7 @@ public final class TimerSession {
     public init(run: Run, fileURL: URL? = nil, layout: Layout? = nil) throws {
         guard let timer = LiveSplitCore.Timer(run) else { throw RunFileError.noSegments }
         self.timer = timer
-        self.layout = layout ?? Layout.defaultLayout(LSLang.english)
+        self.layout = layout ?? Self.makeDefaultLayout()
         self.fileURL = fileURL
         refresh()
     }
@@ -44,12 +46,33 @@ public final class TimerSession {
         try self.init(run: RunFile.load(from: url), fileURL: url)
     }
 
+    /// LiveSplit's default layout plus the statistics runners check most: the predicted final
+    /// time, the sum of best segments and how much time could still be saved.
+    public static func makeDefaultLayout() -> Layout {
+        let layout = Layout.defaultLayout(LSLang.english)
+        layout.push(CurrentPaceComponent().intoGeneric())
+        layout.push(SumOfBestComponent().intoGeneric())
+        layout.push(PossibleTimeSaveComponent().intoGeneric())
+        return layout
+    }
+
     // MARK: Run info
 
     public var gameName: String { timer.getRun().gameName() }
     public var categoryName: String { timer.getRun().categoryName() }
     public var segmentCount: Int { timer.getRun().len() }
     public var currentSplitIndex: Int { timer.currentSplitIndex() }
+
+    /// Real time elapsed in the current attempt, in seconds (0 before the timer starts).
+    public var elapsedRealTime: Double { timer.currentTime().realTime()?.totalSeconds() ?? 0 }
+
+    /// Name of the segment being run, or of the last one once the attempt is finished.
+    public var currentSplitName: String {
+        let run = timer.getRun()
+        let count = run.len()
+        guard count > 0 else { return "" }
+        return run.segment(min(max(currentSplitIndex, 0), count - 1)).name()
+    }
 
     // MARK: Rendering
 
@@ -62,6 +85,8 @@ public final class TimerSession {
             lastError = "Layout decode failed: \(error)"
         }
         phase = TimerPhase(rawValue: timer.currentPhase()) ?? .notRunning
+        let index = timer.currentSplitIndex()
+        if index != splitIndex { splitIndex = index }
         comparison = timer.currentComparison()
         timingMethod = TimingMethod(rawValue: timer.currentTimingMethod()) ?? .realTime
     }

@@ -174,6 +174,27 @@ final class SplitterCoreTests: XCTestCase {
         XCTAssertEqual(fresh.state?.segments.count, 1)
     }
 
+    func testDefaultLayoutShowsRunStatistics() throws {
+        let session = try TimerSession(contentsOf: fixture("sample.lss"))
+        let keys = try XCTUnwrap(session.state).components.compactMap { c -> String? in
+            if case .keyValue(let kv) = c { kv.key } else { nil }
+        }
+        XCTAssertEqual(keys.filter { $0 == "Sum of Best Segments" || $0 == "Sum of Best" }.count, 1, "\(keys)")
+        XCTAssertTrue(keys.contains { $0.contains("Pace") }, "\(keys)")
+        XCTAssertTrue(keys.contains { $0.contains("Time Save") }, "\(keys)")
+    }
+
+    func testLibraryEntryDetails() throws {
+        let library = RunLibrary(directory: scratch.appendingPathComponent("Details"))
+        try library.importFile(at: fixture("sample.lss"))
+        let entry = try XCTUnwrap(library.entries.first)
+        XCTAssertNotNil(entry.personalBest)
+        XCTAssertTrue(entry.detailLine.contains("\(entry.segmentCount) splits"), entry.detailLine)
+        XCTAssertEqual(DurationFormat.string(4193), "1:09:53")
+        XCTAssertEqual(DurationFormat.string(704), "11:44")
+        XCTAssertEqual(DurationFormat.string(42.31), "42.31")
+    }
+
     func testSanitize() {
         XCTAssertEqual(RunLibrary.sanitize("A/B: C?"), "A-B- C-")
         XCTAssertEqual(RunLibrary.sanitize("   "), "Splits")

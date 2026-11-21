@@ -9,9 +9,46 @@ public struct RunEntry: Identifiable, Hashable, Sendable {
     public var segmentCount: Int
     public var attempts: UInt32
     public var modified: Date
+    /// Final split time of the personal best (real time), if the run has one.
+    public var personalBest: TimeInterval?
+    /// Game icon image data, if the splits have one.
+    public var icon: Data?
+
+    public init(url: URL, game: String, category: String, segmentCount: Int, attempts: UInt32,
+                modified: Date, personalBest: TimeInterval? = nil, icon: Data? = nil) {
+        self.url = url
+        self.game = game
+        self.category = category
+        self.segmentCount = segmentCount
+        self.attempts = attempts
+        self.modified = modified
+        self.personalBest = personalBest
+        self.icon = icon
+    }
 
     public var id: URL { url }
     public var displayTitle: String { game.isEmpty ? url.deletingPathExtension().lastPathComponent : game }
+
+    /// e.g. "Any% · 30 splits · 6 attempts".
+    public var detailLine: String {
+        var parts: [String] = []
+        if !category.isEmpty { parts.append(category) }
+        parts.append(segmentCount == 1 ? "1 split" : "\(segmentCount) splits")
+        parts.append(attempts == 1 ? "1 attempt" : "\(attempts) attempts")
+        return parts.joined(separator: " · ")
+    }
+}
+
+public enum DurationFormat {
+    /// "1:09:53", "11:44" or "42.31" (centiseconds only under a minute).
+    public static func string(_ seconds: TimeInterval) -> String {
+        let total = max(0, seconds)
+        let whole = Int(total)
+        let h = whole / 3600, m = (whole % 3600) / 60, s = whole % 60
+        if h > 0 { return String(format: "%d:%02d:%02d", h, m, s) }
+        if m > 0 { return String(format: "%d:%02d", m, s) }
+        return String(format: "%d.%02d", s, Int((total - Double(whole)) * 100))
+    }
 }
 
 /// The app's splits folder. Every run is stored as a LiveSplit `.lss` file, so the
@@ -43,8 +80,13 @@ public final class RunLibrary {
                 guard let run = try? RunFile.load(from: url) else { return nil }
                 defer { run.dispose() }
                 let modified = (try? url.resourceValues(forKeys: [.contentModificationDateKey]).contentModificationDate) ?? .distantPast
+                let count = run.len()
+                let pb = count > 0 ? run.segment(count - 1).personalBestSplitTime().realTime()?.totalSeconds() : nil
+                var icon: Data?
+                if let ptr = run.gameIconPtr(), run.gameIconLen() > 0 { icon = Data(bytes: ptr, count: run.gameIconLen()) }
                 return RunEntry(url: url, game: run.gameName(), category: run.categoryName(),
-                                segmentCount: run.len(), attempts: run.attemptCount(), modified: modified)
+                                segmentCount: count, attempts: run.attemptCount(), modified: modified,
+                                personalBest: pb, icon: icon)
             }
             .sorted { $0.modified > $1.modified }
     }

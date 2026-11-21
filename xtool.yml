@@ -3,3 +3,6 @@ bundleID: com.totorruns.splitter
 product: Splitter
 infoPath: Info.plist
 iconPath: Resources/AppIcon.png
+extensions:
+  - product: SplitterWidgets
+    infoPath: Extensions/SplitterWidgets-Info.plist

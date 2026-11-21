@@ -1,6 +1,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 import UniformTypeIdentifiers
+import UIKit
 import SplitterCore
 
 extension UTType {
@@ -41,6 +42,8 @@ struct LibraryView: View {
                 } else {
                     ForEach(library.entries) { entry in
                         Button { open(entry.url) } label: { EntryRow(entry: entry) }
+                            // A button in a list takes the accent colour; rows are items, not links.
+                            .tint(.primary)
                             .swipeActions(edge: .trailing) {
                                 Button(role: .destructive) { pendingDelete = entry } label: {
                                     Label("Delete", systemImage: "trash")
@@ -64,11 +67,17 @@ struct LibraryView: View {
             }
             .navigationTitle("Splitter")
             .toolbar {
-                ToolbarItem(placement: .topBarLeading) {
-                    Button { importing = true } label: { Label("Import", systemImage: "square.and.arrow.down") }
-                }
                 ToolbarItem(placement: .topBarTrailing) {
-                    Button { newRunEditor = RunEditorSession.newRun() } label: { Label("New Splits", systemImage: "plus") }
+                    Menu {
+                        Button { newRunEditor = RunEditorSession.newRun() } label: {
+                            Label("New Splits", systemImage: "square.and.pencil")
+                        }
+                        Button { importing = true } label: {
+                            Label("Import Splits…", systemImage: "square.and.arrow.down")
+                        }
+                    } label: {
+                        Label("Add Splits", systemImage: "plus")
+                    }
                 }
             }
             .refreshable { library.reload() }
@@ -189,20 +198,49 @@ struct TimerRoute: Hashable {
 
 private struct EntryRow: View {
     var entry: RunEntry
+    @ScaledMetric(relativeTo: .headline) private var iconSize: CGFloat = 40
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 3) {
-            Text(entry.displayTitle)
-                .font(.headline)
-                .foregroundStyle(.primary)
-            HStack(spacing: 12) {
-                if !entry.category.isEmpty { Text(entry.category) }
-                Label("\(entry.segmentCount)", systemImage: "list.bullet")
-                Label("\(entry.attempts)", systemImage: "arrow.counterclockwise")
+        HStack(spacing: 12) {
+            if let data = entry.icon, let image = UIImage(data: data) {
+                Image(uiImage: image)
+                    .resizable()
+                    .interpolation(.high)
+                    .scaledToFit()
+                    .frame(width: iconSize, height: iconSize)
+                    .clipShape(.rect(cornerRadius: 8))
+                    .accessibilityHidden(true)
             }
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .labelStyle(.titleAndIcon)
+            VStack(alignment: .leading, spacing: 3) {
+                Text(entry.displayTitle)
+                    .font(.headline)
+                    .foregroundStyle(.primary)
+                Text(entry.detailLine)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+            }
+            .frame(maxWidth: .infinity, alignment: .leading)
+            VStack(alignment: .trailing, spacing: 3) {
+                if let pb = entry.personalBest {
+                    Text(DurationFormat.string(pb))
+                        .font(.body.weight(.semibold))
+                        .monospacedDigit()
+                        .foregroundStyle(.primary)
+                    Text("Personal Best")
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                } else {
+                    Text("No PB yet")
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            .lineLimit(1)
+            .fixedSize()
+            Image(systemName: "chevron.forward")
+                .font(.footnote.weight(.semibold))
+                .foregroundStyle(.tertiary)
+                .accessibilityHidden(true)
         }
         .padding(.vertical, 4)
         .accessibilityElement(children: .combine)
