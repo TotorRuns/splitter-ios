@@ -1,6 +1,7 @@
 #if canImport(SwiftUI)
 import SwiftUI
 import PhotosUI
+import UIKit
 import SplitterCore
 
 /// Edits game/category/attempts and the segment list, like Splitter's "Edit Run" window.
@@ -12,6 +13,7 @@ struct RunEditorView: View {
 
     @State private var iconItem: PhotosPickerItem?
     @State private var confirmingClear = false
+    @State private var findingIcon = false
     /// Delete/reorder controls appear only after tapping Edit (HIG: Lists and tables).
     /// Swipe-to-delete works either way.
     @State private var editMode: EditMode = .inactive
@@ -28,9 +30,33 @@ struct RunEditorView: View {
                     CommitField("Start Offset", text: state.offset, keyboard: .numbersAndPunctuation) {
                         editor.setOffset($0)
                     }
-                    PhotosPicker(selection: $iconItem, matching: .images) {
-                        Label("Choose Game Icon…", systemImage: "photo")
+                }
+
+                Section {
+                    if let data = editor.gameIconData(), let image = UIImage(data: data) {
+                        HStack {
+                            Image(uiImage: image)
+                                .resizable()
+                                .scaledToFit()
+                                .frame(maxWidth: 72, maxHeight: 72)
+                                .clipShape(.rect(cornerRadius: 8))
+                                .accessibilityLabel("Current game icon")
+                            Spacer()
+                            Button("Remove", role: .destructive) { editor.setGameIcon(nil) }
+                        }
                     }
+                    Button {
+                        findingIcon = true
+                    } label: {
+                        Label("Find on speedrun.com…", systemImage: "magnifyingglass")
+                    }
+                    PhotosPicker(selection: $iconItem, matching: .images) {
+                        Label("Choose from Photos…", systemImage: "photo")
+                    }
+                } header: {
+                    Text("Game Icon")
+                } footer: {
+                    Text("speedrun.com search uses the game name above.")
                 }
 
                 Section {
@@ -85,12 +111,21 @@ struct RunEditorView: View {
         } message: {
             Text("This removes attempt history, best segments and personal best times.")
         }
+        .sheet(isPresented: $findingIcon) {
+            NavigationStack {
+                SpeedrunIconPicker(initialQuery: editor.state?.game ?? "") { data in
+                    editor.setGameIcon(data)
+                }
+            }
+        }
         .onChange(of: iconItem) { _, item in
             guard let item else { return }
             Task {
-                if let data = try? await item.loadTransferable(type: Data.self) {
-                    editor.setGameIcon(data)
+                if let data = try? await item.loadTransferable(type: Data.self),
+                   let icon = GameIconImage.prepare(data) {
+                    editor.setGameIcon(icon)
                 }
+                iconItem = nil  // so picking the same photo again still triggers
             }
         }
     }

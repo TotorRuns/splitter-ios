@@ -57,6 +57,8 @@ public struct RunEditorState: Decodable, Sendable {
     }
 
     public var game: String
+    /// Image cache id of the game icon (empty-data hash when there's none).
+    public var icon: String?
     public var category: String
     public var offset: String
     public var attempts: UInt32
@@ -68,7 +70,7 @@ public struct RunEditorState: Decodable, Sendable {
     public var segments: [Row] { rows.filter(\.isSegment) }
 
     enum CodingKeys: String, CodingKey {
-        case game, category, offset, attempts, rows, buttons
+        case game, category, offset, attempts, rows, buttons, icon
         case timingMethod = "timing_method"
         case comparisonNames = "comparison_names"
     }
@@ -99,6 +101,14 @@ public final class RunEditorSession: Identifiable {
         let session = RunEditorSession(run: run)
         session?.edit { $0.setGameName("New Game"); $0.setCategoryName("Any%") }
         return session
+    }
+
+    /// The run's game icon image data, or nil if it has none.
+    public func gameIconData() -> Data? {
+        guard let id = state?.icon, !id.isEmpty, id != TimerSession.emptyImageID,
+              let ptr = imageCache.lookupDataPtr(id) else { return nil }
+        let len = imageCache.lookupDataLen(id)
+        return len > 0 ? Data(bytes: ptr, count: len) : nil
     }
 
     private func refresh() {

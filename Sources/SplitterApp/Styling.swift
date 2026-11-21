@@ -57,6 +57,25 @@ struct GradientFill: View {
     }
 }
 
+/// Prepares an image for use as a game icon: decodes anything UIKit can read (including HEIC
+/// photos, which livesplit-core can't), scales it to fit 256 pt, and re-encodes it as PNG so
+/// `.lss` files stay small.
+enum GameIconImage {
+    static let maxDimension: CGFloat = 256
+
+    static func prepare(_ data: Data) -> Data? {
+        guard let image = UIImage(data: data), image.size.width > 0, image.size.height > 0 else { return nil }
+        let scale = min(1, maxDimension / max(image.size.width, image.size.height))
+        let size = CGSize(width: (image.size.width * scale).rounded(), height: (image.size.height * scale).rounded())
+        let format = UIGraphicsImageRendererFormat.default()
+        format.scale = 1
+        let resized = UIGraphicsImageRenderer(size: size, format: format).image { _ in
+            image.draw(in: CGRect(origin: .zero, size: size))
+        }
+        return resized.pngData()
+    }
+}
+
 /// Image for a livesplit-core icon id, if the run has one.
 struct RunIcon: View {
     var id: String

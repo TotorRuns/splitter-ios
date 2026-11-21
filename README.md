@@ -27,7 +27,9 @@ A native SwiftUI speedrun timer for iPhone and iPad, modelled on
   recently played first.
 - Comparison switching (PB, Best Segments, Average, …) and Real/Game time.
 - A splits editor for game, category, attempts, offset, icon, segment names, PB split times and
-  best segments. You can add, delete and reorder segments.
+  best segments. Game icons can come from speedrun.com (searched by game name, using the game's
+  cover art) or from Photos; either way they're scaled to 256 px. speedrun.com's bot protection
+  sometimes refuses the download; the app then offers to retry or open the game's page. You can add, delete and reorder segments.
 - New runs from scratch. Delete, duplicate and share as `.lss`.
 - Runs autosave as `.lss` in `Documents/Splits`, which shows up in the Files app.
 - The screen stays awake during an attempt.
