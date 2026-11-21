@@ -38,7 +38,7 @@ struct TimerView: View {
             }
             .onChange(of: context.date) { _, _ in session.refresh() }
         }
-        // Controls float above the layout, whose background extends to the screen edge (HIG: Layout).
+        // Controls sit below the layout; its background still extends to the screen edge (HIG: Layout).
         .safeAreaInset(edge: .bottom, spacing: 0) { controls }
         .environment(\.splitPalette, palette)
         // LiveSplit layouts are designed for a dark background, so the timer stays dark even when
@@ -216,20 +216,13 @@ struct TimerView: View {
 // MARK: Control styling
 
 private extension View {
-    /// Liquid Glass on iOS 26+, where controls sit on a glass layer above content; earlier
-    /// systems keep the bordered styles on an opaque bar.
-    @ViewBuilder func primaryControlStyle() -> some View {
-        if #available(iOS 26.0, *) { buttonStyle(.glassProminent) } else { buttonStyle(.borderedProminent) }
-    }
-
-    @ViewBuilder func secondaryControlStyle() -> some View {
-        if #available(iOS 26.0, *) { buttonStyle(.glass) } else { buttonStyle(.bordered) }
-    }
-
-    @ViewBuilder func controlPanelBackground() -> some View {
-        // HIG (Toolbars): avoid custom backgrounds behind glass controls.
-        if #available(iOS 26.0, *) { self } else { background(.bar) }
-    }
+    // The timer's controls belong to the content layer, so they use standard bordered buttons on a
+    // standard material rather than Liquid Glass. HIG (Materials): "Don't use Liquid Glass in the
+    // content layer" and "use Liquid Glass effects sparingly". The navigation bar, a system
+    // component, still adopts Liquid Glass automatically on iOS 26.
+    func primaryControlStyle() -> some View { buttonStyle(.borderedProminent) }
+    func secondaryControlStyle() -> some View { buttonStyle(.bordered) }
+    func controlPanelBackground() -> some View { background(.bar) }
 }
 
 private struct VerticalCompactLabelStyle: LabelStyle {
