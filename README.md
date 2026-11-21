@@ -140,8 +140,12 @@ scripts/build-ipa.sh --input publish=true --input release_notes="What's new in t
 This builds a release IPA and stamps it with a unique build number (`YYYYMMDDhhmm`, UTC). It then
 uploads the IPA to a GitHub release tagged `v<version>-<build>`, adds the version to the top of
 `altstore/source.json`, pushes that commit, and pulls it back here. Commit your changes first; the
-script refuses to publish a dirty tree. Bump `CFBundleShortVersionString` in `Info.plist` for a new
-marketing version.
+script refuses to publish a dirty tree.
+
+Versioning: the build number is stamped automatically on every build, so AltStore always sees an
+update. The marketing version (`CFBundleShortVersionString` in `Info.plist` and
+`Extensions/SplitterWidgets-Info.plist`) is bumped by hand: 1.x → 1.(x+1) for releases that add
+features, 1.1 → 1.1.1 for fix-only releases, 2.0 for a major change.
 
 `scripts/update-altstore-source.py` reads the bundle ID, version, build and permissions from the
 IPA itself, so the source always matches what AltStore checks at install time
